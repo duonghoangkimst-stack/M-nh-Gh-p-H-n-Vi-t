@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import mapImg from '../assets/images/map-vietnam.png';
+import mapImg from '../assets/images/BanDo.jpg';
 
-interface InteractiveVietnamMapProps {
+export interface InteractiveVietnamMapProps {
   selectedRegion: 'north' | 'central' | 'south' | null;
   onSelectRegion: (region: 'north' | 'central' | 'south') => void;
 }
 
-// Exact contour coordinates tracing the 3 regions from map-vietnam.png (419 x 512)
+// Exact pixel contour coordinates tracing the 3 regions from BanDo.jpg (419 x 512)
 const NORTH_POLYGON =
   '110,4 96,8 95,12 21,16 12,28 25,48 36,52 33,68 43,76 43,80 87,88 81,96 98,108 89,120 72,124 68,132 70,136 86,148 112,160 133,160 137,156 133,148 143,120 159,108 171,88 193,76 197,68 207,60 189,56 167,40 166,32 162,28 170,20 170,16 136,8 130,4';
 
@@ -70,7 +70,7 @@ export default function InteractiveVietnamMap({
         )}
       </div>
 
-      {/* Main Map Card with Gold Border */}
+      {/* Main Map Card with Heritage Gold Border */}
       <div className="relative bg-white rounded-2xl border-2 border-[#C5B358] p-3 sm:p-4 shadow-md overflow-hidden flex flex-col items-center">
         {/* Helper guide label above map */}
         <div className="w-full text-center pb-2 text-[11px] font-medium text-stone-500 flex items-center justify-center gap-1.5 border-b border-stone-100 mb-2">
@@ -79,28 +79,21 @@ export default function InteractiveVietnamMap({
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#C5B358]" />
         </div>
 
-        {/* Static Map Image Container with Exact 419/512 Aspect Ratio */}
-        <div
-          className="relative w-full max-h-[500px] flex items-center justify-center"
-          style={{ aspectRatio: '419 / 512' }}
-        >
-          {/* 1. Static Image (Preserved exactly as requested) */}
-          <img
-            src={mapImg}
-            alt="Bản đồ phân vùng 3 miền Việt Nam"
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            className="w-full h-full object-contain pointer-events-none select-none"
-            referrerPolicy="no-referrer"
-          />
-
-          {/* 2. Interactive SVG Overlay (Invisible click regions with hover & active highlights) */}
+        {/* 
+          Interactive SVG Map with embedded <image> tag:
+          Wrapping <image> inside <svg viewBox="0 0 419 512"> ensures that both the base map
+          and all interactive <polygon> coordinates scale in 100% mathematical lockstep across
+          any screen size without any alignment drift or offset.
+        */}
+        <div className="relative w-full flex items-center justify-center">
           <svg
             viewBox="0 0 419 512"
-            className="absolute inset-0 w-full h-full pointer-events-auto"
+            className="w-full h-auto max-h-[500px] select-none"
             style={{ touchAction: 'manipulation' }}
             aria-label="Bản đồ tương tác 3 miền Việt Nam"
           >
             <defs>
+              {/* Region Glow Highlights */}
               <filter id="northGlow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#5EA33C" floodOpacity="0.6" />
               </filter>
@@ -112,7 +105,23 @@ export default function InteractiveVietnamMap({
               </filter>
             </defs>
 
-            {/* MIỀN BẮC (North Region - Green) */}
+            {/* 
+              1. Base Map Image inside SVG (Width: 419, Height: 512):
+              Scales responsively and shares the identical coordinate space with SVG polygons.
+            */}
+            <image
+              href={mapImg}
+              x="0"
+              y="0"
+              width="419"
+              height="512"
+              preserveAspectRatio="xMidYMid meet"
+              className="pointer-events-none select-none"
+            />
+
+            {/* 
+              2. MIỀN BẮC (Region: 'north' - Green)
+            */}
             <g
               id="region-overlay-north"
               role="button"
@@ -134,9 +143,9 @@ export default function InteractiveVietnamMap({
                 points={NORTH_POLYGON}
                 fill={
                   hoveredRegion === 'north'
-                    ? 'rgba(94, 163, 60, 0.28)'
+                    ? 'rgba(94, 163, 60, 0.32)'
                     : selectedRegion === 'north'
-                    ? 'rgba(94, 163, 60, 0.16)'
+                    ? 'rgba(94, 163, 60, 0.18)'
                     : 'rgba(94, 163, 60, 0.001)'
                 }
                 stroke={
@@ -153,7 +162,9 @@ export default function InteractiveVietnamMap({
               />
             </g>
 
-            {/* MIỀN TRUNG (Central Region - Yellow/Orange + Hoàng Sa) */}
+            {/* 
+              3. MIỀN TRUNG (Region: 'central' - Yellow/Orange + Hoàng Sa)
+            */}
             <g
               id="region-overlay-central"
               role="button"
@@ -171,12 +182,12 @@ export default function InteractiveVietnamMap({
               className="cursor-pointer transition-all duration-200 outline-none"
             >
               <title>Miền Trung & Quần đảo Hoàng Sa (Nhấp để chọn di tích Miền Trung)</title>
-              {/* Mainland Central */}
+              {/* Mainland Central Polygon */}
               <polygon
                 points={CENTRAL_POLYGON}
                 fill={
                   hoveredRegion === 'central'
-                    ? 'rgba(242, 184, 34, 0.32)'
+                    ? 'rgba(242, 184, 34, 0.34)'
                     : selectedRegion === 'central'
                     ? 'rgba(242, 184, 34, 0.18)'
                     : 'rgba(242, 184, 34, 0.001)'
@@ -193,7 +204,7 @@ export default function InteractiveVietnamMap({
                 filter={hoveredRegion === 'central' || selectedRegion === 'central' ? 'url(#centralGlow)' : undefined}
                 className="transition-all duration-200"
               />
-              {/* Hoàng Sa Archipelago Click Zone */}
+              {/* Quần đảo Hoàng Sa Interactive Zone */}
               <rect
                 x="285"
                 y="190"
@@ -220,7 +231,9 @@ export default function InteractiveVietnamMap({
               />
             </g>
 
-            {/* MIỀN NAM (South Region - Blue + Trường Sa) */}
+            {/* 
+              4. MIỀN NAM (Region: 'south' - Blue + Trường Sa)
+            */}
             <g
               id="region-overlay-south"
               role="button"
@@ -238,12 +251,12 @@ export default function InteractiveVietnamMap({
               className="cursor-pointer transition-all duration-200 outline-none"
             >
               <title>Miền Nam & Quần đảo Trường Sa (Nhấp để chọn di tích Miền Nam)</title>
-              {/* Mainland South */}
+              {/* Mainland South Polygon */}
               <polygon
                 points={SOUTH_POLYGON}
                 fill={
                   hoveredRegion === 'south'
-                    ? 'rgba(58, 135, 208, 0.32)'
+                    ? 'rgba(58, 135, 208, 0.34)'
                     : selectedRegion === 'south'
                     ? 'rgba(58, 135, 208, 0.18)'
                     : 'rgba(58, 135, 208, 0.001)'
@@ -260,7 +273,7 @@ export default function InteractiveVietnamMap({
                 filter={hoveredRegion === 'south' || selectedRegion === 'south' ? 'url(#southGlow)' : undefined}
                 className="transition-all duration-200"
               />
-              {/* Trường Sa Archipelago Click Zone */}
+              {/* Quần đảo Trường Sa Interactive Zone */}
               <rect
                 x="285"
                 y="380"
@@ -289,7 +302,7 @@ export default function InteractiveVietnamMap({
           </svg>
         </div>
 
-        {/* 3 Quick Switch Action Buttons at Bottom */}
+        {/* Quick Region Selector Action Pills at Bottom */}
         <div className="w-full grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-stone-200">
           <button
             type="button"
@@ -344,5 +357,3 @@ export default function InteractiveVietnamMap({
     </div>
   );
 }
-
-
